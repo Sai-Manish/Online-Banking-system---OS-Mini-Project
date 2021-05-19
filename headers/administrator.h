@@ -9,7 +9,6 @@ typedef struct administrator{
     float balance;
     char status[25];
 	char password[15];
-    int accType = 3;
 }administrator;
 
 #endif

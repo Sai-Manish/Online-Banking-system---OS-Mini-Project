@@ -9,7 +9,6 @@ typedef struct normal_User{
 	int account_no;
 	float balance;
 	char status[25];
-	int accType = 1;
 }normal_User;
 
 #endif

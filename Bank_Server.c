@@ -47,9 +47,9 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
-    #ifdef LOGGING
-        printf("[LOG] Server ready to accept connections on port %d...\n", SERVER_PORT);
-    #endif
+   
+    printf("Server ready to accept connections on port %d...\n", SERVER_PORT);
+  
 
     // Main event loop
     while(1){
@@ -335,264 +335,173 @@ bool checkUser(User currUser, accType){
 }
 
 bool depositMoney(int accType,int ID,float amount){
-	int i=ID-1000;
-	if(accType==1){
-		int fd=open("NormalUsersAccounts",O_RDWR,0744);
-		bool result;
-		int fl1;
-		struct flock lock;
-		lock.l_type = F_WRLCK;
-		lock.l_whence=SEEK_SET;
-		lock.l_start=(i)*sizeof(normalUser);    //nth record
-		lock.l_len=sizeof(normalUser);	             //sizeof(record)
-		lock.l_pid=getpid();
 	
-		fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
-		//getchar();
-
-		normalUser currUser;
-		lseek(fd,(i)*sizeof(normalUser),SEEK_SET);  //changing the file pointer to the selected record
-		read(fd,&currUser,sizeof(normalUser));
-		
-		if(!strcmp(currUser.status,"ACTIVE")){
-			currUser.balance+=amount;
-			lseek(fd,sizeof(normalUser)*(-1),SEEK_CUR);
-			write(fd,&currUser,sizeof(normalUser));
-			result=true;
-		}
-		else	result=false;
-		lock.l_type=F_UNLCK;
-		fcntl(fd,F_SETLK,&lock);
-
-		close(fd);
-		return result;		
+	if(accType==1){
+		int i=ID-1000;
+		int fd=open("NormalUsersAccounts",O_RDWR,0744);
+		bool result = false;
 	}
 	else if(accType==2){
-		int fd=open("JUfile",O_RDWR,0744);
-		bool result;
-		int fl1;
-		struct flock lock;
-		lock.l_type = F_WRLCK;
-		lock.l_whence=SEEK_SET;
-		lock.l_start=(i)*sizeof(jointUser);    //nth record
-		lock.l_len=sizeof(jointUser);	             //sizeof(record)
-		lock.l_pid=getpid();
+		int i=ID-2000;
+		int fd=open("JointUsersAccounts",O_RDWR,0744);
+		bool result = false;
+	}
+	int fl1;
+	struct flock lock;
+	lock.l_type = F_WRLCK;
+	lock.l_whence=SEEK_SET;
+	lock.l_start=(i)*sizeof(User);    //nth record
+	lock.l_len=sizeof(User);	             //sizeof(record)
+	lock.l_pid=getpid();
 	
-		fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
+	fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
 		//getchar();
 
-		jointUser currUser;
-		lseek(fd,(i)*sizeof(jointUser),SEEK_SET);  //changing the file pointer to the selected record
-		read(fd,&currUser,sizeof(jointUser));
+	User currUser;
+	lseek(fd,(i)*sizeof(User),SEEK_SET);  //changing the file pointer to the selected record
+	read(fd,&currUser,sizeof(User));
 		
-		if(!strcmp(currUser.status,"ACTIVE")){
-			currUser.balance+=amount;
-			lseek(fd,sizeof(jointUser)*(-1),SEEK_CUR);
-			write(fd,&currUser,sizeof(jointUser));
-			result=true;
-		}
-		else	result=false;
-		lock.l_type=F_UNLCK;
-		fcntl(fd,F_SETLK,&lock);
-
-		close(fd);
-		return result;	
+	if(!strcmp(currUser.status,"ACTIVE")){
+		currUser.balance+=amount;
+		lseek(fd,(-1)*sizeof(User),SEEK_CUR);
+		write(fd,&currUser,sizeof(User));
+		result=true;
 	}
-	return false;
+	else{
+			result=false;
+	}
+	lock.l_type=F_UNLCK;
+	fcntl(fd,F_SETLK,&lock);
+
+	close(fd);
+	return result;		
+	
 }
 
 bool withdrawMoney(int accType,int ID,float amount){
-	int i=ID-1000;
+
 	if(accType==1){
+		int i=ID-1000;
 		int fd=open("NormalUsersAccounts",O_RDWR,0744);
-		bool result;
-		int fl1;
-		struct flock lock;
-		lock.l_type = F_WRLCK;
-		lock.l_whence=SEEK_SET;
-		lock.l_start=(i)*sizeof(normalUser);    //nth record
-		lock.l_len=sizeof(normalUser);	             //sizeof(record)
-		lock.l_pid=getpid();
-	
-		fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
-		//getchar();
-
-		normalUser currUser;
-		lseek(fd,(i)*sizeof(normalUser),SEEK_SET);  //changing the file pointer to the selected record
-		read(fd,&currUser,sizeof(normalUser));
-		
-		if(!strcmp(currUser.status,"ACTIVE") && currUser.balance>=amount){
-			currUser.balance-=amount;
-			lseek(fd,sizeof(normalUser)*(-1),SEEK_CUR);
-			write(fd,&currUser,sizeof(normalUser));
-			result=true;
-		}
-		else	result=false;
-		lock.l_type=F_UNLCK;
-		fcntl(fd,F_SETLK,&lock);
-
-		close(fd);
-		return result;	
+		bool result = false;
 	}
 	else if(accType==2){
-		int fd=open("JUfile",O_RDWR,0744);
-		bool result;
-		int fl1;
-		struct flock lock;
-		lock.l_type = F_WRLCK;
-		lock.l_whence=SEEK_SET;
-		lock.l_start=(i)*sizeof(jointUser);    //nth record
-		lock.l_len=sizeof(jointUser);	             //sizeof(record)
-		lock.l_pid=getpid();
+		int i=ID-2000;
+		int fd=open("JointUsersAccounts",O_RDWR,0744);
+		bool result = false;
+	}
+	int fl1;
+	struct flock lock;
+	lock.l_type = F_WRLCK;
+	lock.l_whence=SEEK_SET;
+	lock.l_start=(i)*sizeof(User);    //nth record
+	lock.l_len=sizeof(User);	             //sizeof(record)
+	lock.l_pid=getpid();
 	
-		fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
+	fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
 		//getchar();
 
-		jointUser currUser;
-		lseek(fd,(i)*sizeof(jointUser),SEEK_SET);  //changing the file pointer to the selected record
-		read(fd,&currUser,sizeof(jointUser));
+	User currUser;
+	lseek(fd,(i)*sizeof(User),SEEK_SET);  //changing the file pointer to the selected record
+	read(fd,&currUser,sizeof(User));
 		
-		if(!strcmp(currUser.status,"ACTIVE") && currUser.balance>=amount){
-			currUser.balance-=amount;
-			lseek(fd,sizeof(jointUser)*(-1),SEEK_CUR);
-			write(fd,&currUser,sizeof(jointUser));
-			result=true;
-		}
-		else	result=false;
-		lock.l_type=F_UNLCK;
-		fcntl(fd,F_SETLK,&lock);
-
-		close(fd);
-		return result;
+	if(!strcmp(currUser.status,"ACTIVE") && currUser.balance>=amount){
+		currUser.balance-=amount;
+		lseek(fd,sizeof(User)*(-1),SEEK_CUR);
+		write(fd,&currUser,sizeof(User));
+		result=true;
 	}
-	return false;
+
+	else{	
+		result=false;
+	}
+	lock.l_type=F_UNLCK;
+	fcntl(fd,F_SETLK,&lock);
+
+	close(fd);
+	return result;	
+	
 }
 
 float getBalance(int accType,int ID){
-	int i=ID-1000;
-	float result;
+	float result = 0;
 	if(accType==1){
 		int i=ID-1000;
 		int fd=open("NormalUsersAccounts",O_RDONLY,0744);
-		normalUser temp;
-	
-		int fl1;
-		struct flock lock;
-		lock.l_type = F_RDLCK;
-		lock.l_whence=SEEK_SET;
-		lock.l_start=(i)*sizeof(normalUser);    	     //nth record
-		lock.l_len=sizeof(normalUser);	             //sizeof(record)
-		lock.l_pid=getpid();
-	
-		fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
-		//getchar();
-
-		lseek(fd,(i)*sizeof(normalUser),SEEK_SET);  //changing the file pointer to the selected record
-		read(fd,&temp,sizeof(normalUser));
-		if(!strcmp(temp.status,"ACTIVE"))	result=temp.balance;
-		else					result=0;
-
-		lock.l_type=F_UNLCK;
-		fcntl(fd,F_SETLK,&lock);
-
-		close(fd);
-		return result;
+		User temp;
 	}
 	else if(accType==2){
-		int i=ID-1000;
-		int fd=open("JUfile",O_RDONLY,0744);
-		jointUser temp;
+		int i=ID-2000;
+		int fd=open("JointUsersAccounts",O_RDONLY,0744);
+		User temp;
+	}
+	int fl1;
+	struct flock lock;
+	lock.l_type = F_RDLCK;
+	lock.l_whence=SEEK_SET;
+	lock.l_start=(i)*sizeof(User);    	     //nth record
+	lock.l_len=sizeof(User);	             //sizeof(record)
+	lock.l_pid=getpid();
 	
-		int fl1;
-		struct flock lock;
-		lock.l_type = F_RDLCK;
-		lock.l_whence=SEEK_SET;
-		lock.l_start=(i)*sizeof(jointUser);    	     //nth record
-		lock.l_len=sizeof(jointUser);	             //sizeof(record)
-		lock.l_pid=getpid();
-	
-		fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
+	fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
 		//getchar();
 
-		lseek(fd,(i)*sizeof(jointUser),SEEK_SET);  //changing the file pointer to the selected record
-		read(fd,&temp,sizeof(jointUser));
-		if(!strcmp(temp.status,"ACTIVE"))	result=temp.balance;
-		else					result=0;
-
-		lock.l_type=F_UNLCK;
-		fcntl(fd,F_SETLK,&lock);
-
-		close(fd);
-		return result;
+	lseek(fd,(i)*sizeof(User),SEEK_SET);  //changing the file pointer to the selected record
+	read(fd,&temp,sizeof(User));
+	if(!strcmp(temp.status,"ACTIVE")){
+		result=temp.balance;
 	}
-	return 0;
+	else{					
+		result=0;
+	}
+
+	lock.l_type=F_UNLCK;
+	fcntl(fd,F_SETLK,&lock);
+
+	close(fd);
+	return result;
 }
 
 bool alterPassword(int accType,int ID,char newpassword[10]){
-	int i=ID-1000;
+	
 	if(accType==1){
+		int i=ID-1000;
 		int fd=open("NormalUsersAccounts",O_RDWR,0744);
 		bool result;
-		int fl1;
-		struct flock lock;
-		lock.l_type = F_WRLCK;
-		lock.l_whence=SEEK_SET;
-		lock.l_start=(i)*sizeof(normalUser);    //nth record
-		lock.l_len=sizeof(normalUser);	             //sizeof(record)
-		lock.l_pid=getpid();
-	
-		fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
-		//getchar();
-
-		normalUser currUser;
-		lseek(fd,(i)*sizeof(normalUser),SEEK_SET);  //changing the file pointer to the selected record
-		read(fd,&currUser,sizeof(normalUser));
-		
-		if(!strcmp(currUser.status,"ACTIVE")){
-			strcpy(currUser.password,newpassword);
-			lseek(fd,sizeof(normalUser)*(-1),SEEK_CUR);
-			write(fd,&currUser,sizeof(normalUser));
-			result=true;
-		}
-		else	result=false;
-		lock.l_type=F_UNLCK;
-		fcntl(fd,F_SETLK,&lock);
-
-		close(fd);
-		return result;
 	}
 	else if(accType==2){
-		int fd=open("JUfile",O_RDWR,0744);
+		int i=ID-2000;
+		int fd=open("JointUsersAccounts",O_RDWR,0744);
 		bool result;
-		int fl1;
-		struct flock lock;
-		lock.l_type = F_WRLCK;
-		lock.l_whence=SEEK_SET;
-		lock.l_start=(i)*sizeof(jointUser);    //nth record
-		lock.l_len=sizeof(jointUser);	             //sizeof(record)
-		lock.l_pid=getpid();
-	
-		fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
-		//getchar();
-
-		jointUser currUser;
-		lseek(fd,(i)*sizeof(jointUser),SEEK_SET);  //changing the file pointer to the selected record
-		read(fd,&currUser,sizeof(jointUser));
-		
-		if(!strcmp(currUser.status,"ACTIVE")){
-			strcpy(currUser.password,newpassword);
-			lseek(fd,sizeof(jointUser)*(-1),SEEK_CUR);
-			write(fd,&currUser,sizeof(jointUser));
-			result=true;
-		}
-		else	result=false;
-		lock.l_type=F_UNLCK;
-		fcntl(fd,F_SETLK,&lock);
-
-		close(fd);
-		return result;
 	}
-	return false;
+	int fl1;
+	struct flock lock;
+	lock.l_type = F_WRLCK;
+	lock.l_whence=SEEK_SET;
+	lock.l_start=(i)*sizeof(User);    //nth record
+	lock.l_len=sizeof(User);	             //sizeof(record)
+	lock.l_pid=getpid();
+	
+	fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
+		//getchar();
+	User currUser;
+	lseek(fd,(i)*sizeof(User),SEEK_SET);  //changing the file pointer to the selected record
+	read(fd,&currUser,sizeof(User));
+		
+	if(!strcmp(currUser.status,"ACTIVE")){
+		strcpy(currUser.password,newpassword);
+		lseek(fd,sizeof(normalUser)*(-1),SEEK_CUR);
+		write(fd,&currUser,sizeof(User));
+		result=true;
+	}
+	else{
+		result=false;
+	}
+	lock.l_type=F_UNLCK;
+	fcntl(fd,F_SETLK,&lock);
+
+	close(fd);
+	return result;
 }
 
 bool addUser(User record,int accType){

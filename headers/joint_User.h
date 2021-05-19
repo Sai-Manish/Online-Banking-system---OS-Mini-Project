@@ -9,7 +9,6 @@ typedef struct joint_User{
 	int account_no;
 	float balance;
 	char status[25];
-    int accType = 2;
 }joint_User;
 
 #endif

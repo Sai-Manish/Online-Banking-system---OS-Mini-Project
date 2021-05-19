@@ -695,7 +695,7 @@ bool modifyNormalUser(normalUser modUser){
 
 bool modifyJointUser(jointUser modUser){
 	int i=modUser.userID-1000;
-	int fd=open("JUfile",O_RDWR,0744);
+	int fd=open("JointUsersAccounts",O_RDWR,0744);
 	bool result=false;
 	
 	int fl1;
@@ -774,4 +774,176 @@ bool modifyUser(User modUser,int accType){
 	
 	close(fd);
 	return result;	
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+bool depositMoney(int accType,int ID,float amount){
+	
+	if(accType==1){
+		int i=ID-1000;
+		int fd=open("NormalUsersAccounts",O_RDWR,0744);
+		bool result = false;
+	}
+	else if(accType==2){
+		int i=ID-2000;
+		int fd=open("JointUsersAccounts",O_RDWR,0744);
+		bool result = false;
+	}
+	int fl1;
+	struct flock lock;
+	lock.l_type = F_WRLCK;
+	lock.l_whence=SEEK_SET;
+	lock.l_start=(i)*sizeof(User);    //nth record
+	lock.l_len=sizeof(User);	             //sizeof(record)
+	lock.l_pid=getpid();
+	
+	fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
+		//getchar();
+
+	User currUser;
+	lseek(fd,(i)*sizeof(User),SEEK_SET);  //changing the file pointer to the selected record
+	read(fd,&currUser,sizeof(User));
+		
+	if(!strcmp(currUser.status,"ACTIVE")){
+		currUser.balance+=amount;
+		lseek(fd,(-1)*sizeof(User),SEEK_CUR);
+		write(fd,&currUser,sizeof(User));
+		result=true;
+	}
+	else{
+			result=false;
+	}
+	lock.l_type=F_UNLCK;
+	fcntl(fd,F_SETLK,&lock);
+
+	close(fd);
+	return result;		
+	}
+}
+
+bool withdrawMoney(int accType,int ID,float amount){
+
+	if(accType==1){
+		int i=ID-1000;
+		int fd=open("NormalUsersAccounts",O_RDWR,0744);
+		bool result = false;
+	}
+	else if(accType==2){
+		int i=ID-2000;
+		int fd=open("JointUsersAccounts",O_RDWR,0744);
+		bool result = false;
+	}
+	int fl1;
+	struct flock lock;
+	lock.l_type = F_WRLCK;
+	lock.l_whence=SEEK_SET;
+	lock.l_start=(i)*sizeof(User);    //nth record
+	lock.l_len=sizeof(User);	             //sizeof(record)
+	lock.l_pid=getpid();
+	
+	fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
+		//getchar();
+
+	User currUser;
+	lseek(fd,(i)*sizeof(User),SEEK_SET);  //changing the file pointer to the selected record
+	read(fd,&currUser,sizeof(User));
+		
+	if(!strcmp(currUser.status,"ACTIVE") && currUser.balance>=amount){
+		currUser.balance-=amount;
+		lseek(fd,sizeof(User)*(-1),SEEK_CUR);
+		write(fd,&currUser,sizeof(User));
+		result=true;
+	}
+
+	else{	
+		result=false;
+	}
+	lock.l_type=F_UNLCK;
+	fcntl(fd,F_SETLK,&lock);
+
+	close(fd);
+	return result;	
+	
+}
+
+float getBalance(int accType,int ID){
+	float result = 0;
+	if(accType==1){
+		int i=ID-1000;
+		int fd=open("NormalUsersAccounts",O_RDONLY,0744);
+		User temp;
+	}
+	else if(accType==2){
+		int i=ID-2000;
+		int fd=open("JointUsersAccounts",O_RDONLY,0744);
+		User temp;
+	}
+	int fl1;
+	struct flock lock;
+	lock.l_type = F_RDLCK;
+	lock.l_whence=SEEK_SET;
+	lock.l_start=(i)*sizeof(User);    	     //nth record
+	lock.l_len=sizeof(User);	             //sizeof(record)
+	lock.l_pid=getpid();
+	
+	fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
+		//getchar();
+
+	lseek(fd,(i)*sizeof(User),SEEK_SET);  //changing the file pointer to the selected record
+	read(fd,&temp,sizeof(User));
+	if(!strcmp(temp.status,"ACTIVE")){
+		result=temp.balance;
+	}
+	else{					
+		result=0;
+	}
+
+	lock.l_type=F_UNLCK;
+	fcntl(fd,F_SETLK,&lock);
+
+	close(fd);
+	return result;
+}
+
+bool alterPassword(int accType,int ID,char newpassword[10]){
+	
+	if(accType==1){
+		int i=ID-1000;
+		int fd=open("NormalUsersAccounts",O_RDWR,0744);
+		bool result;
+	}
+	else if(accType==2){
+		int i=ID-2000;
+		int fd=open("JointUsersAccounts",O_RDWR,0744);
+		bool result;
+	}
+	int fl1;
+	struct flock lock;
+	lock.l_type = F_WRLCK;
+	lock.l_whence=SEEK_SET;
+	lock.l_start=(i)*sizeof(User);    //nth record
+	lock.l_len=sizeof(User);	             //sizeof(record)
+	lock.l_pid=getpid();
+	
+	fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
+		//getchar();
+	User currUser;
+	lseek(fd,(i)*sizeof(User),SEEK_SET);  //changing the file pointer to the selected record
+	read(fd,&currUser,sizeof(User));
+		
+	if(!strcmp(currUser.status,"ACTIVE")){
+		strcpy(currUser.password,newpassword);
+		lseek(fd,sizeof(normalUser)*(-1),SEEK_CUR);
+		write(fd,&currUser,sizeof(User));
+		result=true;
+	}
+	else{
+		result=false;
+	}
+	lock.l_type=F_UNLCK;
+	fcntl(fd,F_SETLK,&lock);
+
+	close(fd);
+	return result;
 }
