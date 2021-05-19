@@ -10,6 +10,7 @@ typedef struct User{
 	char password[15];
 	float balance;
 	char status[25];
+	int n_users;
 }User;
 
 #endif

@@ -1,26 +1,4 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<netinet/in.h>
-#include<unistd.h>
-#include<stdbool.h>
-#include<string.h>
-#include<fcntl.h>
-#include <pthread.h>
-#include "headers/constants.h"
-#include "headers/User.h"
-
-//void* client_Handler(void* s_fd);
-User getUser(int ID,int accType);
-bool checkUser(User currUser, int accType);
-bool depositMoney(int accType,int ID,float amount);
-bool withdrawMoney(int accType,int ID,float amount);
-float getBalance(int accType,int ID);
-bool alterPassword(int accType,int ID,char newpassword[15]);
-bool addUser(User record,int accType);
-bool deleteUser(int ID,int accType);
-bool modifyUser(User modUser,int accType);
+#include "headers/Bank_Server.h"
 
 void* client_Handler(void* s_fd){
 	int sock_fd = *((int *)s_fd);
@@ -38,7 +16,10 @@ void* client_Handler(void* s_fd){
 			printf("Password : %s\n",currUser.password);
 			currUserID=currUser.userID;
 			result=checkUser(currUser,accType);
-			write(sock_fd,&result,sizeof(result));
+			if(result){
+				put_Busy(currUserID,accType);
+			}
+			write(sock_fd,&result,sizeof(result));		
 		}
 		else if(User_Option==2){
 			User currUser;
@@ -48,6 +29,9 @@ void* client_Handler(void* s_fd){
 			printf("Username : %d\n",currUser.userID);
 			printf("Password : %s\n",currUser.password);
 			result=checkUser(currUser,accType);
+			if(result){
+				put_Busy(currUserID,accType);
+			}
 			write(sock_fd,&result,sizeof(result));
 		}
 		else if(User_Option==3){
@@ -106,6 +90,7 @@ void* client_Handler(void* s_fd){
 				}
 			}
 			else if(select==6){
+				un_Busy(currUserID,accType);
                 break;
             }
 		}
@@ -182,16 +167,8 @@ void* client_Handler(void* s_fd){
 	}
 	close(sock_fd);
 	write(1,"Client session ended!!!\n",sizeof("Client session ended!!!\n"));
-	//return;
-	
-	//Task(sock_fd);
+
 }
-
-/*void Task(int sock_fd){
-
-}*/
-
-
 User getUser(int ID,int accType)
 {
 	int i, fd;
@@ -267,7 +244,13 @@ bool checkUser(User currUser, int accType){
 	read(fd,&temp,sizeof(User));
     if(accType == 1 || accType == 2){
 	    if(!strcmp(temp.password,currUser.password) && !strcmp(temp.status,"ACTIVE")){	
-            result=true;
+			if(temp.n_users >0){
+				printf("%d",temp.n_users);
+            	result=true;
+			}
+			else{
+				result=false;
+			}
         }
 	    else{
 				result=false;
@@ -603,6 +586,90 @@ bool modifyUser(User modUser,int accType){
 	return result;	
 }
 
+void put_Busy(int ID,int accType){
+	int i, fd;
+    if(accType == 1){
+        i = ID - 1000;
+	    fd=open("NormalUsersAccounts",O_WRONLY,0744);
+    }
+
+    else if(accType == 2){
+        i = ID - 2000;
+	    fd=open("JointUsersAccounts",O_WRONLY,0744);
+    }
+    
+    User currUser;
+
+	int fl1;
+	struct flock lock;
+	lock.l_type = F_WRLCK;
+	lock.l_whence=SEEK_SET;
+	lock.l_start=(i)*sizeof(User);    //nth record
+	lock.l_len=sizeof(User);	      //sizeof(record)
+	lock.l_pid=getpid();
+	
+	fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
+		//getchar();
+	lseek(fd,(i)*sizeof(User),SEEK_SET);  //changing the file pointer to the selected record
+	read(fd,&currUser,sizeof(User));
+		
+	if(!strcmp(currUser.status,"ACTIVE")){
+		currUser.n_users = currUser.n_users - 1;
+		printf("curruser : %d\n",currUser.n_users);
+		lseek(fd,(-1)*sizeof(User),SEEK_CUR);
+		write(fd,&currUser,sizeof(User));
+		//result=true;
+	}
+	
+	lock.l_type=F_UNLCK;
+	fcntl(fd,F_SETLK,&lock);
+
+	close(fd);
+	//return result;
+}
+
+void un_Busy(int ID,int accType){
+	int i, fd;
+    if(accType == 1){
+        i = ID - 1000;
+	    fd=open("NormalUsersAccounts",O_WRONLY,0744);
+    }
+
+    else if(accType == 2){
+        i = ID - 2000;
+	    fd=open("JointUsersAccounts",O_WRONLY,0744);
+    }
+    
+    User currUser;
+
+	int fl1;
+	struct flock lock;
+	lock.l_type = F_WRLCK;
+	lock.l_whence=SEEK_SET;
+	lock.l_start=(i)*sizeof(User);    //nth record
+	lock.l_len=sizeof(User);	      //sizeof(record)
+	lock.l_pid=getpid();
+	
+	fl1=fcntl(fd,F_SETLKW,&lock);	//lock the selected record
+		//getchar();
+
+	lseek(fd,(i)*sizeof(User),SEEK_SET);  //changing the file pointer to the selected record
+	read(fd,&currUser,sizeof(User));
+		
+	if(!strcmp(currUser.status,"ACTIVE")){
+		currUser.n_users = currUser.n_users + 1;
+		lseek(fd,(-1)*sizeof(User),SEEK_CUR);
+		write(fd,&currUser,sizeof(User));
+		//result=true;
+	}
+	
+	lock.l_type=F_UNLCK;
+	fcntl(fd,F_SETLK,&lock);
+
+	close(fd);
+	//return result;
+}
+
 int main(){
     int server_fd, new_server_fd, opt=1;
     struct sockaddr_in server_addr;
@@ -636,20 +703,16 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
-   
     printf("Server ready to accept connections on port %d...\n", SERVER_PORT);
-  
 
     // Main event loop
     while(1){
         new_server_fd = accept(server_fd, (struct sockaddr *)&server_addr, (socklen_t*)&addrlen);
-
         if(new_server_fd > 0){
 			write(1,"Client got connected!!!\n",sizeof("Client got connected!!!\n"));
             pthread_t threadID;
             int* socket_ptr = malloc(sizeof(int));
             *socket_ptr = new_server_fd;
-
             pthread_create(&threadID, NULL, client_Handler, (void *)socket_ptr);
         }
     }

@@ -1,29 +1,4 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<netinet/in.h>
-#include<arpa/inet.h>
-#include<unistd.h>
-#include<stdbool.h>
-#include "headers/constants.h"
-#include "headers/User.h"
-
-void attemptNormalUserLogin(int s_fd);
-void attemptJointUserLogin(int s_fd);
-void attemptAdminLogin(int s_fd);
-void showMenu(int s_fd);
-void deposit(int s_fd);
-void withdraw(int s_fd);
-void balanceEnquiry(int s_fd);
-void changePassword(int s_fd);
-void viewDetails(int s_fd);
-void addAccount(int s_fd);
-void deleteAccount(int s_fd);
-void modifyAccount(int s_fd);
-void searchAccount(int s_fd);
-void chooseOption(int s_fd);
-void attemptUserLogin(int s_fd);
+#include "headers/client.h"
 
 int option,currUserID;
 
@@ -181,7 +156,7 @@ void attemptUserLogin(int s_fd){
 	write(s_fd,&currUser,sizeof(User));
 
 	read(s_fd,&result,sizeof(result)); //from the server
-
+	printf("result : %d",result);
 	if(!result){
 		write(1,"Invalid login!!\n\n",sizeof("Invalid login!!\n\n"));
 		chooseOption(s_fd);
