@@ -51,7 +51,7 @@ $ gcc -pthread Bank_server.c -o Bank_server
 $ ./Bank_server
 ```
 
-3. Run the client, it gives which user mode wants to login  
+3. Run the client, it gives which user wants to login  
 ```
 $ gcc client.c -o client  
 $ ./client
