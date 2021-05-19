@@ -6,9 +6,6 @@
 #include<arpa/inet.h>
 #include<unistd.h>
 #include<stdbool.h>
-#include "headers/normal_User.h"
-#include "headers/joint_User.h"
-#include "headers/administrator.h"
 #include "headers/constants.h"
 #include "headers/User.h"
 
@@ -25,6 +22,9 @@ void addAccount(int s_fd);
 void deleteAccount(int s_fd);
 void modifyAccount(int s_fd);
 void searchAccount(int s_fd);
+void chooseOption(int s_fd);
+void attemptUserLogin(int s_fd);
+
 int option,currUserID;
 
 int main(){
@@ -34,18 +34,31 @@ int main(){
 	char result;
 
 	//connection establishment
-	s_fd=socket(AF_INET,SOCK_STREAM,0);
-	server.sin_family=AF_INET;
-	//server.sin_addr.s_addr=inet_addr("172.16.81.54"); //other machine
-	//server.sin_addr.s_addr=INADDR_ANY; //same machine
-	server.sin_addr.s_addr=inet_addr("127.0.0.1"); //same machine
-	server.sin_port=htons(5555);
-	connect(s_fd,(struct sockaddr *)&server,sizeof(server));
+	int client_fd = 0, login_status;
+    char Buffer[1024] = "";
 
-	chooseOption(s_fd);
-	showMenu(s_fd);	
+    if((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+        perror("client socket");
+        exit(EXIT_FAILURE);
+    }
 
-	close(s_fd);
+    server.sin_family = AF_INET;
+    server.sin_port = htons(CLIENT_PORT);
+
+    if(inet_pton(AF_INET, "127.0.0.1", &server.sin_addr) <= 0){
+        perror("ip address");
+        exit(EXIT_FAILURE);
+    }
+
+    if(connect(client_fd, (struct sockaddr*)&server, sizeof(server)) < 0){
+        perror("client connect");
+        exit(EXIT_FAILURE);
+    }
+	printf("Connected to server!!!\n\n");
+	chooseOption(client_fd);
+	showMenu(client_fd);	
+
+	close(client_fd);
 
 	return 0;
 }
@@ -462,7 +475,7 @@ void searchAccount(int s_fd){
 		scanf("%d",&userID);
 		write(s_fd,&userID,sizeof(int));
 		
-		len=read(s_fd,&searchUser1,sizeof(normalUser));
+		len=read(s_fd,&searchUser1,sizeof(User));
 		if(len==0){
 			write(1,"Please re-check the User ID!!\n\n",sizeof("Please re-check the User ID!!\n\n"));
 		}
@@ -482,7 +495,7 @@ void searchAccount(int s_fd){
 		scanf("%d",&userID1);
 		write(s_fd,&userID1,sizeof(int));
 		
-		len=read(s_fd,&searchUser2,sizeof(jointUser));
+		len=read(s_fd,&searchUser2,sizeof(User));
 		if(len==0){
 			write(1,"Please re-check the User ID!!\n\n",sizeof("Please re-check the User ID!!\n\n"));
 		}

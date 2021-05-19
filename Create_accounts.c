@@ -3,9 +3,6 @@
 #include<unistd.h>
 #include<fcntl.h>
 #include<string.h>
-#include "headers/normal_User.h"
-#include "headers/joint_User.h"
-#include "headers/administrator.h"
 #include "headers/constants.h"
 #include "headers/User.h"
 
