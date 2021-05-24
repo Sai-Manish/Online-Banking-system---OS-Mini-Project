@@ -14,7 +14,7 @@ functional. The project should have the following functionalities:
 * Account holders have to pass through a login system to enter their accounts.
 * The application should possess password-protected administrative access; thus
 preventing the whole management system from unauthorized access.
-* Three types of login should be created: normal user, joint account user; administrator;
+* Three types of login should be created: normal user, joint account user, administrator.
 * Once you login as administrator, you should be able to add, delete, modify, search for a
 specific account details.
 * Once the customer connect to the server, you should get login and password prompt.
