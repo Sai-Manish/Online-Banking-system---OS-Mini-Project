@@ -12,13 +12,13 @@ The project aims to develop a banking system that is user-friendly and multi-
 functional. The project should have the following functionalities:   
 * All account transactional details and customer information are stored in files.
 * Account holders have to pass through a login system to enter their accounts.
-* The application should possess password-protected administrative access; thus
+* The application possess password-protected administrative access; thus
 preventing the whole management system from unauthorized access.
-* Three types of login should be created: normal user, joint account user, administrator.
+* Three types of login are created: Normal User, Joint Account User, Administrator.
 * Once you login as administrator, you should be able to add, delete, modify, search for a
-specific account details.
-* Once the customer connect to the server, you should get login and password prompt.
-After successful login, you should get menu for example:
+specific account.
+* Once the customer connects to the server, you get a login and password prompt.
+After successful login, if you are Normal or Joint user you will get a menu for example:
 Do you want to:
 	* Deposit
 	* Withdraw
@@ -26,20 +26,16 @@ Do you want to:
 	* Password Change
 	* View details
 	* Exit
-* If you login as a joint account holder, proper file locking should be implemented. If you
-want to view the account details then read lock is to be set else if you want to withdraw
-or deposit then write lock should be used to protect the critical data section.
-* Use socket programming – Server maintains the data base and service multiple clients
-concurrently. Client program can connect to the server and access their specific account
+* If you login as a joint account holder, proper file locking is implemented. If you
+want to view the account details then read lock is set else if you want to withdraw
+or deposit then write lock is used to protect the critical data section.
+* Socket programming is used – Server maintains the data base and service multiple clients
+concurrently. Client program connects to the server and access their specific account
 details.
-* Use system calls instead of Library functions wherever it is possible in the project:
-Process Management, File Management, File Locking, Multithreading and Inter Process
-Communication Mechanisms.
-
 ___
 ## How to run the system
 
-1. Firstly run the Create_accounts.c and fill in the sign up details  
+1. Firstly run the Create_accounts.c and fill in the sign up details
 ```
 $ gcc Create_accounts.c -o Create_accounts  
 $ ./Create_accounts
@@ -51,7 +47,7 @@ $ gcc -pthread Bank_server.c -o Bank_server
 $ ./Bank_server
 ```
 
-3. Run the client, it gives which user wants to login  
+3. Run the client, After connecting to server it asks for User login  
 ```
 $ gcc client.c -o client  
 $ ./client
